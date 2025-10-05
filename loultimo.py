@@ -37,11 +37,11 @@ with clima_container:
         key="clima_select"
     )
     
-    API_KEY = "570b37db047f98a8991cbfdf236fe04e"  
+    API_KEY = "ff6b70c868da677f5e3ff4332fb40a73"  
     
     if st.button("Consultar Clima", type="primary"):
         if departamento:
-            if not API_KEY or API_KEY == "570b37db047f98a8991cbfdf236fe04e":
+            if not API_KEY or API_KEY == "ff6b70c868da677f5e3ff4332fb40a73":
                 st.error(" Por favor configura tu API Key de OpenWeatherMap")
             else:
               
@@ -88,5 +88,6 @@ with clima_container:
             st.warning("Por favor, selecciona un departamento")
 
 st.markdown("---")
+
 
 
