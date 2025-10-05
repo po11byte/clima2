@@ -1,68 +1,59 @@
 import streamlit as st
-import pandas as pd
 import requests
 
 st.set_page_config(page_title="Clima y Café App", layout="centered")
 
 departamentos_el_salvador = [
-    "chalatenango", "san salvador", "san miguel", "sonsonate", "santa ana",
-    "ahuachapán", "la libertad", "la paz", "la unión", "morazán",
-    "san vicente", "usulután", "cabañas", "cuscatlán"
+    "San Salvador", "Santa Ana", "San Miguel", "La Libertad", "Sonsonate",
+    "Usulután", "San Vicente", "Chalatenango", "Cuscatlán", "La Paz",
+    "La Unión", "Morazán", "Ahuachapán", "Cabañas"
 ]
 
+# PRUEBA CON ESTA KEY (puede tener límites)
+API_KEY = "ff6b70c868da677f5e3ff4332fb40a73"
 
-API_KEY = "ff6b70c868da677f5e3ff4332fb40a73"  
-
-clima_container = st.container()
-
-with clima_container:
-    st.title(" Situación Climática en El Salvador")
-    st.write("Seleccione el departamento:")
+with st.container():
+    st.title("🌤️ Situación Climática en El Salvador")
     
-    departamento = st.selectbox("Departamento", options=departamentos_el_salvador, index=0)
+    departamento = st.selectbox("Seleccione el departamento:", departamentos_el_salvador)
     
     if st.button("Consultar Clima", type="primary"):
-        if departamento:
-       
-            url = f"https://api.openweathermap.org/data/2.5/weather?q={departamento},El Salvador&appid={API_KEY}&units=metric&lang=es"
-            
-            try:
-                with st.spinner('Buscando información climática...'):
-                    response = requests.get(url)
-                    data = response.json()
-
-                if response.status_code == 200:
-                    st.success(" Datos climáticos obtenidos:")
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.metric("Temperatura", f"{data['main']['temp']}°C")
-                        st.metric("Humedad", f"{data['main']['humidity']}%")
-                        st.metric("Viento", f"{data['wind']['speed']} km/h")
-                    
-                    with col2:
-                        st.metric("Ciudad", data['name'])
-                        st.metric("País", data['sys']['country'])
-                        st.metric("Condición", data['weather'][0]['description'].title())
+        # URL mejorada
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={departamento},SV&appid={API_KEY}&units=metric&lang=es"
+        
+        try:
+            with st.spinner('Buscando información climática...'):
+                response = requests.get(url, timeout=10)
                 
-                elif response.status_code == 401:
-                    st.error(" API Key inválida o no activada")
-                    st.info("""
-                    **Solución:**
-                    1. Ve a https://home.openweathermap.org/api_keys
-                    2. Verifica que tu key esté activa
-                    3. Las keys nuevas pueden tardar 10-20 minutos en activarse
-                    4. Si no funciona, genera una nueva key
-                    """)
+            if response.status_code == 200:
+                data = response.json()
+                st.success("✅ Datos obtenidos correctamente")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("🌡️ Temperatura", f"{data['main']['temp']}°C")
+                    st.metric("💧 Humedad", f"{data['main']['humidity']}%")
+                    st.metric("🌬️ Viento", f"{data['wind']['speed']} m/s")
+                
+                with col2:
+                    st.metric("🏙️ Ciudad", data['name'])
+                    st.metric("🇸🇻 País", data['sys']['country'])
+                    st.metric("☁️ Condición", data['weather'][0]['description'].title())
                     
-                else:
-                    st.error(f"Error {response.status_code}: No se pudo encontrar {departamento}")
-                    
-            except Exception as e:
-                st.error(f"Error de conexión: {e}")
-        else:
-            st.warning("Por favor, selecciona un departamento")
-
-
-
-
+            elif response.status_code == 401:
+                st.error("🔑 ERROR: API Key Inválida o No Activada")
+                st.markdown("""
+                **📝 Pasos para solucionar:**
+                1. Ve a [OpenWeatherMap](https://home.openweathermap.org/api_keys)
+                2. **Genera una NUEVA API Key**
+                3. **Espera 20-30 minutos** (las keys nuevas tienen delay)
+                4. **Copia y pega la nueva key** en el código
+                """)
+                
+            else:
+                st.error(f"❌ Error {response.status_code}: {response.json().get('message', 'Error desconocido')}")
+                
+        except requests.exceptions.Timeout:
+            st.error("⏰ Timeout: La API tardó demasiado en responder")
+        except Exception as e:
+            st.error(f"🚨 Error: {e}")
